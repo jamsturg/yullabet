@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 import os
 import json
+import getpass
 from mcp.server.fastmcp import FastMCP
 from starlette.applications import Starlette
 from mcp.server.sse import SseServerTransport
@@ -18,9 +19,9 @@ TAB_API_BASE = "https://api.beta.tab.com.au"
 TOKEN_ENDPOINT = f"{TAB_API_BASE}/oauth/token"
 DEFAULT_JURISDICTION = "NSW"
 
-# Client credentials (to be set in environment variables)
-CLIENT_ID = os.environ.get("TAB_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("TAB_CLIENT_SECRET", "")
+# Client credentials (will be prompted)
+CLIENT_ID = ""
+CLIENT_SECRET = ""
 
 # Cache for the access token
 access_token_cache = {
@@ -28,10 +29,32 @@ access_token_cache = {
     "expires_at": 0
 }
 
+def prompt_for_credentials():
+    """Prompt the user for TAB API credentials."""
+    global CLIENT_ID, CLIENT_SECRET
+    
+    # Try to read from environment variables first
+    CLIENT_ID = os.environ.get("TAB_CLIENT_ID", "")
+    CLIENT_SECRET = os.environ.get("TAB_CLIENT_SECRET", "")
+    
+    # If not set, prompt the user
+    if not CLIENT_ID:
+        CLIENT_ID = input("Enter your TAB API Client ID: ")
+    
+    if not CLIENT_SECRET:
+        CLIENT_SECRET = getpass.getpass("Enter your TAB API Client Secret: ")
+    
+    # Validate
+    if not CLIENT_ID or not CLIENT_SECRET:
+        print("Error: Both Client ID and Client Secret are required.")
+        exit(1)
+    
+    print("TAB API credentials set successfully.")
+
 async def get_access_token() -> str:
     """Get an access token for the TAB API using client credentials."""
     if not CLIENT_ID or not CLIENT_SECRET:
-        raise ValueError("TAB_CLIENT_ID and TAB_CLIENT_SECRET environment variables must be set")
+        raise ValueError("TAB API credentials are not set")
     
     # Check if we have a valid token in cache
     import time
@@ -199,6 +222,33 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
         ],
     )
 
+def prompt_for_jurisdiction():
+    """Prompt the user for the default jurisdiction."""
+    global DEFAULT_JURISDICTION
+    
+    jurisdictions = ["NSW", "VIC", "QLD", "SA", "TAS", "ACT", "NT"]
+    
+    print("\nAvailable jurisdictions:")
+    for i, jurisdiction in enumerate(jurisdictions, 1):
+        print(f"{i}. {jurisdiction}")
+    
+    while True:
+        try:
+            choice = input(f"\nSelect default jurisdiction (1-{len(jurisdictions)}, default is NSW): ")
+            if not choice:
+                break  # Keep default
+            
+            choice = int(choice)
+            if 1 <= choice <= len(jurisdictions):
+                DEFAULT_JURISDICTION = jurisdictions[choice - 1]
+                break
+            else:
+                print(f"Please enter a number between 1 and {len(jurisdictions)}")
+        except ValueError:
+            print("Please enter a valid number")
+    
+    print(f"Default jurisdiction set to: {DEFAULT_JURISDICTION}")
+
 if __name__ == "__main__":
     mcp_server = mcp._mcp_server  # noqa: WPS437
 
@@ -207,12 +257,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run TAB API MCP SSE-based server')
     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
     parser.add_argument('--port', type=int, default=8081, help='Port to listen on')
+    parser.add_argument('--no-prompt', action='store_true', help='Skip prompting for credentials')
     args = parser.parse_args()
 
+    print("=== TAB API MCP Server ===")
+    
+    if not args.no_prompt:
+        prompt_for_credentials()
+        prompt_for_jurisdiction()
+    
     # Bind SSE request handling to MCP server
     starlette_app = create_starlette_app(mcp_server, debug=True)
 
-    print(f"Starting TAB API MCP server on {args.host}:{args.port}")
+    print(f"\nStarting TAB API MCP server on {args.host}:{args.port}")
     print(f"Available tools: {[tool.name for tool in mcp._mcp_server.tools]}")
     
     uvicorn.run(starlette_app, host=args.host, port=args.port)

@@ -28,7 +28,7 @@ This repository contains configuration for setting up MCP servers for AI agent i
   - starlette
   - uvicorn
   - python-dotenv
-- TAB API credentials (client_id and client_secret)
+- TAB API credentials (will be prompted when starting the server)
 
 ## Setup
 
@@ -63,13 +63,6 @@ This repository includes:
    uv add httpx "mcp[server]" starlette uvicorn python-dotenv
    ```
 
-4. **Configure TAB API Credentials**:
-   Edit the `.env` file and add your TAB API credentials:
-   ```
-   TAB_CLIENT_ID=your_client_id
-   TAB_CLIENT_SECRET=your_client_secret
-   ```
-
 ## Usage
 
 ### 1. Copy the Configuration
@@ -90,6 +83,11 @@ Start the TAB API MCP server:
 ```bash
 .\start-tab-api-mcp.bat
 ```
+
+When the TAB API MCP server starts, it will prompt you for:
+- TAB API Client ID
+- TAB API Client Secret
+- Default jurisdiction (NSW, VIC, QLD, etc.)
 
 ### 3. Start MCP-Chat
 
@@ -137,7 +135,12 @@ Command:
 python C:/Users/adam/Desktop/yullabet/tab-api-mcp.py --port 8081
 ```
 
-Environment variables:
+Command-line options:
+- `--host`: Host to bind to (default: 0.0.0.0)
+- `--port`: Port to listen on (default: 8081)
+- `--no-prompt`: Skip prompting for credentials (useful if set in environment variables)
+
+Environment variables (optional, will be prompted if not set):
 - TAB_CLIENT_ID: The client ID for the TAB API
 - TAB_CLIENT_SECRET: The client secret for the TAB API
 
