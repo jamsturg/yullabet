@@ -255,3 +255,56 @@ The TAB API MCP server provides the following tools:
 - `get_racing_dates`: Get available racing dates
 - `get_racing_meetings`: Get racing meetings for a specific date
 - `get_racing_races`: Get races for a specific meeting
+
+## Testing
+
+The repository includes a comprehensive test suite to ensure that all components work correctly and are cross-platform compatible.
+
+### Running Tests
+
+#### Windows:
+```powershell
+# Run all tests
+.\run_tests.ps1
+```
+
+#### macOS/Linux:
+```bash
+# Make the script executable
+chmod +x run_tests.sh
+
+# Run all tests
+./run_tests.sh
+```
+
+### Test Suite
+
+The test suite includes:
+
+1. **Unit Tests for TAB API MCP Server**:
+   - Tests for the `get_access_token` function
+   - Tests for the `make_tab_api_request` function
+   - Tests for all API endpoint functions
+   - Tests for the credential prompting functions
+
+2. **Integration Tests for TAB API MCP Server**:
+   - Tests that start the actual server
+   - Tests that verify the server is running correctly
+   - Tests for cross-platform compatibility
+
+3. **Tests for Setup Scripts**:
+   - Tests that verify the setup scripts exist
+   - Tests that check the script syntax
+   - Tests that verify the required functions are present
+   - Tests for cross-platform compatibility
+
+### Cross-Platform Compatibility
+
+The tests ensure that all scripts and components work correctly on both Windows and macOS. This includes:
+
+- Path handling (using `os.path` for platform-independent paths)
+- Command execution (using platform-specific commands when necessary)
+- File operations (using platform-independent methods)
+- Process management (starting and stopping processes correctly on each platform)
+
+The integration tests also verify that the TAB API MCP server can be started and accessed on both platforms.
