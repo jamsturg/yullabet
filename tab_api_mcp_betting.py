@@ -380,6 +380,30 @@ async def get_sport_events(sport_name: str, competition_id: str = None, jurisdic
     except Exception as e:
         return f"Error fetching events for sport {sport_name}: {str(e)}"
 
+def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlette:
+    """Create a Starlette application that can serve the provided mcp server with SSE."""
+    sse = SseServerTransport("/messages/")
+
+    async def handle_sse(request: Request) -> None:
+        async with sse.connect_sse(
+                request.scope,
+                request.receive,
+                request._send,  # noqa: SLF001
+        ) as (read_stream, write_stream):
+            await mcp_server.run(
+                read_stream,
+                write_stream,
+                mcp_server.create_initialization_options(),
+            )
+
+    return Starlette(
+        debug=debug,
+        routes=[
+            Route("/sse", endpoint=handle_sse),
+            Mount("/messages/", app=sse.handle_post_message),
+        ],
+    )
+
 if __name__ == "__main__":
     mcp_server = mcp._mcp_server  # noqa: WPS437
 
@@ -397,7 +421,6 @@ if __name__ == "__main__":
         prompt_for_credentials()
     
     # Bind SSE request handling to MCP server
-    sse = SseServerTransport("/messages/")
     starlette_app = create_starlette_app(mcp_server, debug=True)
 
     print(f"\nStarting TAB API Betting MCP server on {args.host}:{args.port}")
