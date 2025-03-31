@@ -34,17 +34,54 @@ This repository contains configuration for setting up MCP servers for AI agent i
 
 This repository includes:
 
-1. **MCP-Chat Configuration**: A configuration file for the MCP-Chat server that includes the filesystem MCP server, the freqtrade-mcp server, and the TAB API MCP server.
+1. **MCP-Chat Configuration**: A configuration file for the MCP-Chat server that includes multiple MCP servers for enhanced functionality.
 
 2. **Configuration Script**: Scripts to copy the configuration to the MCP-Chat directory.
 
 3. **TAB API MCP Server**: A Python-based MCP server that provides tools for interacting with the TAB API.
 
-4. **Setup Scripts**: Scripts for setting up the environment on Windows and macOS.
+4. **Setup Scripts**: Scripts for setting up the environment and MCP servers on Windows and macOS.
 
-### Automated Setup (macOS)
+### Automated Setup for MCP Servers
 
-For macOS users, a comprehensive setup script is provided:
+#### Windows:
+
+```powershell
+# Run the setup script for MCP servers
+.\setup-mcp-servers.ps1
+```
+
+This script will:
+1. Check and verify Node.js and npm installation
+2. Check and install Python dependencies
+3. Install Smithery CLI
+4. Install UV and UVX
+5. Clone and set up freqtrade-mcp
+6. Install all Smithery MCP servers:
+   - @smithery-ai/server-sequential-thinking
+   - @browserbasehq/mcp-browserbase
+   - @ashley-ha/mcp-manus
+   - @IzumiSy/mcp-duckdb-memory-server
+   - @capecoma/winterm-mcp
+   - mcp-server-ccxt
+   - @simonb97/server-win-cli
+   - @sidharthrajaram/mcp-sse
+
+#### macOS:
+
+```bash
+# Make the script executable
+chmod +x setup-mcp-servers.sh
+
+# Run the setup script for MCP servers
+./setup-mcp-servers.sh
+```
+
+This script performs the same setup steps as the Windows version, but adapted for macOS.
+
+### Automated Setup for Environment (macOS)
+
+For macOS users, a comprehensive environment setup script is also provided:
 
 ```bash
 # Make the script executable
@@ -149,19 +186,9 @@ Open the MCP-Chat web interface (usually at http://localhost:3000) and select th
 
 Provides access to the filesystem.
 
-Command:
-```
-npx -y @modelcontextprotocol/server-filesystem C://
-```
-
 ### 2. Freqtrade MCP Server
 
 Provides integration with the Freqtrade cryptocurrency trading bot.
-
-Command:
-```
-uv --directory C:/Users/adam/Desktop/freqtrade-mcp run __main__.py
-```
 
 Environment variables:
 - FREQTRADE_API_URL: The URL of the Freqtrade API (default: http://127.0.0.1:8080)
@@ -172,11 +199,6 @@ Environment variables:
 
 Provides integration with the TAB API for sports and racing information.
 
-Command:
-```
-python C:/Users/adam/Desktop/yullabet/tab-api-mcp.py --port 8081
-```
-
 Command-line options:
 - `--host`: Host to bind to (default: 0.0.0.0)
 - `--port`: Port to listen on (default: 8081)
@@ -185,6 +207,20 @@ Command-line options:
 Environment variables (optional, will be prompted if not set):
 - TAB_CLIENT_ID: The client ID for the TAB API
 - TAB_CLIENT_SECRET: The client secret for the TAB API
+
+### 4. Additional MCP Servers
+
+The configuration includes several additional MCP servers:
+
+- **@smithery-ai/server-sequential-thinking**: Provides sequential thinking capabilities
+- **@browserbasehq/mcp-browserbase**: Provides browser automation capabilities
+- **@ashley-ha/mcp-manus**: Provides additional functionality
+- **@IzumiSy/mcp-duckdb-memory-server**: Provides DuckDB database capabilities
+- **@capecoma/winterm-mcp**: Provides terminal access
+- **mcp-server-aidd**: Provides AI-driven development capabilities
+- **mcp-server-ccxt**: Provides cryptocurrency exchange integration
+- **@simonb97/server-win-cli**: Provides Windows CLI capabilities
+- **@sidharthrajaram/mcp-sse**: Provides SSE-based MCP server capabilities
 
 ## Available Tools
 
