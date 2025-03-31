@@ -1,0 +1,12 @@
+{
+  "title": "Yullabet Chat - MCP Configuration",
+  "settings": {
+    "model": "claude-3-7-sonnet-20250219",
+    "systemPrompt": "You are a generic AI agent assistant. \nYou are given tools via MCP servers to assist with tasks. \nUse the tools as needed to complete the user's tasks. \nIf you need help, ask the user for more information. \nIf you are asked to retrieve logs, please only tail the last 100 lines of the logs.\n",
+    "servers": [
+      "npx -y @modelcontextprotocol/server-filesystem C://",
+      "uv --directory C:/Users/adam/Desktop/freqtrade-mcp run __main__.py"
+    ]
+  },
+  "messages": []
+}
