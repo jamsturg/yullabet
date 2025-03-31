@@ -246,11 +246,42 @@ The freqtrade-mcp server provides the following tools:
 - `delete_blacklist`: Remove pair from blacklist
 - `delete_lock`: Delete a trade lock
 
-### TAB API MCP Tools
+### TAB API MCP Servers
 
-The TAB API MCP server provides the following tools:
+The repository provides two TAB API MCP servers:
 
-#### Sports and Racing Information
+1. **TAB API MCP Server** (Port 8081): Provides basic sports and racing information tools
+2. **TAB API Betting MCP Server** (Port 8082): Provides comprehensive betting functionality and account management
+
+#### Starting the Servers
+
+##### Windows:
+```batch
+# Start the basic TAB API MCP server
+.\start-tab-api-mcp.bat
+
+# Start the TAB API Betting MCP server
+.\start-tab-api-betting-mcp.bat
+```
+
+##### macOS/Linux:
+```bash
+# Make the scripts executable
+chmod +x start-tab-api-mcp.sh
+chmod +x start-tab-api-betting-mcp.sh
+
+# Start the basic TAB API MCP server
+./start-tab-api-mcp.sh
+
+# Start the TAB API Betting MCP server
+./start-tab-api-betting-mcp.sh
+```
+
+#### TAB API MCP Tools
+
+The TAB API MCP servers provide the following tools:
+
+##### Sports and Racing Information
 
 - `get_sports`: Get a list of available sports
 - `get_sport_competitions`: Get competitions for a specific sport
@@ -262,20 +293,20 @@ The TAB API MCP server provides the following tools:
 - `get_race_details`: Get detailed information about a specific race
 - `get_runner_details`: Get detailed information about a specific runner in a race
 
-#### Account Management
+##### Account Management
 
 - `get_account_details`: Get details about the user's TAB account
 - `get_account_balance`: Get the current balance of the user's TAB account
 - `get_transaction_history`: Get transaction history for the user's TAB account
 
-#### Betting
+##### Betting
 
 - `place_bet`: Place a bet on the TAB platform
 - `get_bet_history`: Get betting history for the user's TAB account
 - `get_active_bets`: Get all active (unsettled) bets for the user's TAB account
 - `cancel_bet`: Cancel a pending bet
 
-#### Markets and Odds
+##### Markets and Odds
 
 - `get_markets`: Get available markets for a specific event
 - `get_odds`: Get odds for a specific market
