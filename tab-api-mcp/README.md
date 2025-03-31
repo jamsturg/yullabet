@@ -20,7 +20,7 @@ pip install -e .
 
 ```bash
 # Start the combined TAB API MCP server (recommended)
-python -m tab_api_mcp --port 8080
+python -m tab_api_mcp --port 8083
 
 # Or use the provided scripts
 ./start-tab-api-mcp-combined.sh  # macOS/Linux

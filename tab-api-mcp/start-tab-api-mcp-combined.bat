@@ -13,6 +13,6 @@ if "%TAB_CLIENT_SECRET%"=="" (
     echo You will be prompted to enter your TAB API Client Secret
 )
 
-python -m tab_api_mcp --port 8080
+python -m tab_api_mcp --port 8083
 
 echo Combined TAB API MCP server stopped.
