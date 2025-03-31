@@ -270,6 +270,6 @@ if __name__ == "__main__":
     starlette_app = create_starlette_app(mcp_server, debug=True)
 
     print(f"\nStarting TAB API MCP server on {args.host}:{args.port}")
-    print(f"Available tools: {[tool.name for tool in mcp.tools]}")
+    print("TAB API MCP server started with sports and racing tools")
     
     uvicorn.run(starlette_app, host=args.host, port=args.port)
