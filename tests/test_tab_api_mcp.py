@@ -3,178 +3,190 @@ import sys
 import os
 import json
 import asyncio
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
-# Add the parent directory to the path so we can import the tab-api-mcp.py file
+# Add the parent directory to the path so we can import the tab_api_mcp module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import the tab-api-mcp.py file
+# Import the tab_api_mcp module
 import tab_api_mcp
 
-class TestTabApiMcp(unittest.TestCase):
+class TestTabApiMcp(unittest.IsolatedAsyncioTestCase): # Inherit from IsolatedAsyncioTestCase
     """Test cases for the TAB API MCP server."""
 
     def setUp(self):
         """Set up the test environment."""
-        # Mock environment variables
+        # Mock environment variables - these won't directly affect module globals after import
         self.env_patcher = patch.dict('os.environ', {
-            'TAB_CLIENT_ID': 'test_client_id',
-            'TAB_CLIENT_SECRET': 'test_client_secret'
-        })
+            'TAB_CLIENT_ID': 'env_client_id',
+            'TAB_CLIENT_SECRET': 'env_client_secret'
+        }, clear=True) # Clear existing env vars for isolation
         self.env_patcher.start()
-        
-        # Reset the access token cache
+
+        # Reset the access token cache before each test
         tab_api_mcp.access_token_cache = {
             "token": None,
             "expires_at": 0
         }
-        
-        # Create a mock FastMCP instance
-        self.mock_mcp = MagicMock()
-        self.original_mcp = tab_api_mcp.mcp
-        tab_api_mcp.mcp = self.mock_mcp
+
+        # Explicitly set module globals for tests that need them pre-set
+        tab_api_mcp.CLIENT_ID = "test_client_id"
+        tab_api_mcp.CLIENT_SECRET = "test_client_secret"
+        tab_api_mcp.DEFAULT_JURISDICTION = "NSW" # Reset default jurisdiction
 
     def tearDown(self):
         """Clean up the test environment."""
         self.env_patcher.stop()
-        tab_api_mcp.mcp = self.original_mcp
+        # Reset module globals to avoid side effects between tests
+        tab_api_mcp.CLIENT_ID = ""
+        tab_api_mcp.CLIENT_SECRET = ""
+        tab_api_mcp.DEFAULT_JURISDICTION = "NSW"
 
-    def test_get_access_token(self):
+    @patch('httpx.AsyncClient.post', new_callable=AsyncMock) # Use AsyncMock for async methods
+    async def test_get_access_token(self, mock_post): # Make test async
         """Test the get_access_token function."""
-        # Mock the httpx.AsyncClient.post method
-        with patch('httpx.AsyncClient.post') as mock_post:
-            # Set up the mock response
-            mock_response = MagicMock()
-            mock_response.raise_for_status = MagicMock()
-            mock_response.json.return_value = {
-                'access_token': 'test_access_token',
-                'expires_in': 3600
-            }
-            mock_post.return_value = mock_response
-            
-            # Call the function and check the result
-            result = asyncio.run(tab_api_mcp.get_access_token())
-            self.assertEqual(result, 'test_access_token')
-            
-            # Check that the token was cached
-            self.assertEqual(tab_api_mcp.access_token_cache['token'], 'test_access_token')
-            self.assertEqual(tab_api_mcp.access_token_cache['expires_in'], 3600)
+        # Set up the mock response
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {
+            'access_token': 'test_access_token',
+            'expires_in': 3600
+        }
+        # Configure the AsyncMock to return the mock response when awaited
+        mock_post.return_value = mock_response
 
-    def test_make_tab_api_request(self):
+        # Call the async function and check the result
+        result = await tab_api_mcp.get_access_token() # Use await
+        self.assertEqual(result, 'test_access_token')
+
+        # Check that the token was cached
+        self.assertEqual(tab_api_mcp.access_token_cache['token'], 'test_access_token')
+        self.assertGreater(tab_api_mcp.access_token_cache['expires_at'], 0)
+
+        # Check that httpx.AsyncClient.post was called correctly
+        mock_post.assert_awaited_once()
+        args, kwargs = mock_post.call_args
+        self.assertEqual(kwargs['data']['client_id'], 'test_client_id')
+        self.assertEqual(kwargs['data']['client_secret'], 'test_client_secret')
+
+    @patch('tab_api_mcp.get_access_token', new_callable=AsyncMock)
+    @patch('httpx.AsyncClient.get', new_callable=AsyncMock)
+    async def test_make_tab_api_request(self, mock_get, mock_get_token): # Make test async
         """Test the make_tab_api_request function."""
-        # Mock the get_access_token function
-        with patch('tab_api_mcp.get_access_token') as mock_get_token:
-            mock_get_token.return_value = asyncio.Future()
-            mock_get_token.return_value.set_result('test_access_token')
-            
-            # Mock the httpx.AsyncClient.get method
-            with patch('httpx.AsyncClient.get') as mock_get:
-                # Set up the mock response
-                mock_response = MagicMock()
-                mock_response.raise_for_status = MagicMock()
-                mock_response.json.return_value = {'data': 'test_data'}
-                mock_get.return_value = mock_response
-                
-                # Call the function and check the result
-                result = asyncio.run(tab_api_mcp.make_tab_api_request('/test_endpoint'))
-                self.assertEqual(result, {'data': 'test_data'})
-                
-                # Check that the correct headers were used
-                mock_get.assert_called_once()
-                args, kwargs = mock_get.call_args
-                self.assertEqual(kwargs['headers']['Authorization'], 'Bearer test_access_token')
+        mock_get_token.return_value = 'test_access_token' # Mock the token directly
 
-    def test_get_sports(self):
+        # Set up the mock response for httpx get
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {'data': 'test_data'}
+        mock_get.return_value = mock_response
+
+        # Call the async function and check the result
+        result = await tab_api_mcp.make_tab_api_request('/test_endpoint') # Use await
+        self.assertEqual(result, {'data': 'test_data'})
+
+        # Check that the correct headers were used
+        mock_get.assert_awaited_once()
+        args, kwargs = mock_get.call_args
+        self.assertEqual(kwargs['headers']['Authorization'], 'Bearer test_access_token')
+
+    @patch('tab_api_mcp.make_tab_api_request', new_callable=AsyncMock)
+    async def test_get_sports(self, mock_request): # Make test async
         """Test the get_sports function."""
-        # Mock the make_tab_api_request function
-        with patch('tab_api_mcp.make_tab_api_request') as mock_request:
-            mock_request.return_value = asyncio.Future()
-            mock_request.return_value.set_result({'sports': ['sport1', 'sport2']})
-            
-            # Call the function and check the result
-            result = asyncio.run(tab_api_mcp.get_sports())
-            self.assertEqual(result, json.dumps({'sports': ['sport1', 'sport2']}, indent=2))
-            
-            # Check that the correct endpoint and parameters were used
-            mock_request.assert_called_once_with('/v1/tab-info-service/sports/', params={'jurisdiction': 'NSW'})
+        mock_request.return_value = {'sports': ['sport1', 'sport2']} # Mock the API response
 
-    def test_get_sport_competitions(self):
+        # Call the async function and check the result
+        result = await tab_api_mcp.get_sports() # Use await
+        self.assertEqual(result, json.dumps({'sports': ['sport1', 'sport2']}, indent=2))
+
+        # Check that the correct endpoint and parameters were used
+        mock_request.assert_awaited_once_with('/v1/tab-info-service/sports/', params={'jurisdiction': 'NSW'})
+
+    @patch('tab_api_mcp.make_tab_api_request', new_callable=AsyncMock)
+    async def test_get_sport_competitions(self, mock_request): # Make test async
         """Test the get_sport_competitions function."""
-        # Mock the make_tab_api_request function
-        with patch('tab_api_mcp.make_tab_api_request') as mock_request:
-            mock_request.return_value = asyncio.Future()
-            mock_request.return_value.set_result({'competitions': ['comp1', 'comp2']})
-            
-            # Call the function and check the result
-            result = asyncio.run(tab_api_mcp.get_sport_competitions('Rugby League'))
-            self.assertEqual(result, json.dumps({'competitions': ['comp1', 'comp2']}, indent=2))
-            
-            # Check that the correct endpoint and parameters were used
-            mock_request.assert_called_once_with('/v1/tab-info-service/sports/Rugby League/competitions', params={'jurisdiction': 'NSW'})
+        mock_request.return_value = {'competitions': ['comp1', 'comp2']}
 
-    def test_get_racing_dates(self):
+        result = await tab_api_mcp.get_sport_competitions('Rugby League') # Use await
+        self.assertEqual(result, json.dumps({'competitions': ['comp1', 'comp2']}, indent=2))
+
+        mock_request.assert_awaited_once_with('/v1/tab-info-service/sports/Rugby League/competitions', params={'jurisdiction': 'NSW'})
+
+    @patch('tab_api_mcp.make_tab_api_request', new_callable=AsyncMock)
+    async def test_get_racing_dates(self, mock_request): # Make test async
         """Test the get_racing_dates function."""
-        # Mock the make_tab_api_request function
-        with patch('tab_api_mcp.make_tab_api_request') as mock_request:
-            mock_request.return_value = asyncio.Future()
-            mock_request.return_value.set_result({'dates': ['2023-01-01', '2023-01-02']})
-            
-            # Call the function and check the result
-            result = asyncio.run(tab_api_mcp.get_racing_dates())
-            self.assertEqual(result, json.dumps({'dates': ['2023-01-01', '2023-01-02']}, indent=2))
-            
-            # Check that the correct endpoint was used
-            mock_request.assert_called_once_with('/v1/tab-info-service/racing/dates')
+        mock_request.return_value = {'dates': ['2023-01-01', '2023-01-02']}
 
-    def test_get_racing_meetings(self):
+        result = await tab_api_mcp.get_racing_dates() # Use await
+        self.assertEqual(result, json.dumps({'dates': ['2023-01-01', '2023-01-02']}, indent=2))
+
+        mock_request.assert_awaited_once_with('/v1/tab-info-service/racing/dates')
+
+    @patch('tab_api_mcp.make_tab_api_request', new_callable=AsyncMock)
+    async def test_get_racing_meetings(self, mock_request): # Make test async
         """Test the get_racing_meetings function."""
-        # Mock the make_tab_api_request function
-        with patch('tab_api_mcp.make_tab_api_request') as mock_request:
-            mock_request.return_value = asyncio.Future()
-            mock_request.return_value.set_result({'meetings': ['meeting1', 'meeting2']})
-            
-            # Call the function and check the result
-            result = asyncio.run(tab_api_mcp.get_racing_meetings('2023-01-01'))
-            self.assertEqual(result, json.dumps({'meetings': ['meeting1', 'meeting2']}, indent=2))
-            
-            # Check that the correct endpoint and parameters were used
-            mock_request.assert_called_once_with('/v1/tab-info-service/racing/dates/2023-01-01/meetings', params={'jurisdiction': 'NSW'})
+        mock_request.return_value = {'meetings': ['meeting1', 'meeting2']}
 
-    def test_get_racing_races(self):
+        result = await tab_api_mcp.get_racing_meetings('2023-01-01') # Use await
+        self.assertEqual(result, json.dumps({'meetings': ['meeting1', 'meeting2']}, indent=2))
+
+        mock_request.assert_awaited_once_with('/v1/tab-info-service/racing/dates/2023-01-01/meetings', params={'jurisdiction': 'NSW'})
+
+    @patch('tab_api_mcp.make_tab_api_request', new_callable=AsyncMock)
+    async def test_get_racing_races(self, mock_request): # Make test async
         """Test the get_racing_races function."""
-        # Mock the make_tab_api_request function
-        with patch('tab_api_mcp.make_tab_api_request') as mock_request:
-            mock_request.return_value = asyncio.Future()
-            mock_request.return_value.set_result({'races': ['race1', 'race2']})
-            
-            # Call the function and check the result
-            result = asyncio.run(tab_api_mcp.get_racing_races('2023-01-01', 'R/MEL'))
-            self.assertEqual(result, json.dumps({'races': ['race1', 'race2']}, indent=2))
-            
-            # Check that the correct endpoint and parameters were used
-            mock_request.assert_called_once_with('/v1/tab-info-service/racing/dates/2023-01-01/meetings/R/MEL/races', params={'jurisdiction': 'NSW'})
+        mock_request.return_value = {'races': ['race1', 'race2']}
 
-    def test_prompt_for_credentials(self):
-        """Test the prompt_for_credentials function."""
-        # Mock the input and getpass.getpass functions
-        with patch('builtins.input', return_value='test_input_client_id'):
-            with patch('getpass.getpass', return_value='test_input_client_secret'):
-                # Call the function
-                tab_api_mcp.prompt_for_credentials()
-                
-                # Check that the credentials were set correctly
-                self.assertEqual(tab_api_mcp.CLIENT_ID, 'test_input_client_id')
-                self.assertEqual(tab_api_mcp.CLIENT_SECRET, 'test_input_client_secret')
+        result = await tab_api_mcp.get_racing_races('2023-01-01', 'R/MEL') # Use await
+        self.assertEqual(result, json.dumps({'races': ['race1', 'race2']}, indent=2))
 
-    def test_prompt_for_jurisdiction(self):
-        """Test the prompt_for_jurisdiction function."""
-        # Mock the input function
-        with patch('builtins.input', return_value='2'):
+        mock_request.assert_awaited_once_with('/v1/tab-info-service/racing/dates/2023-01-01/meetings/R/MEL/races', params={'jurisdiction': 'NSW'})
+
+    @patch('builtins.input', return_value='test_input_client_id')
+    @patch('getpass.getpass', return_value='test_input_client_secret')
+    def test_prompt_for_credentials(self, mock_getpass, mock_input): # This is synchronous
+        """Test the prompt_for_credentials function when env vars are NOT set."""
+        # Temporarily clear module globals to force prompt
+        tab_api_mcp.CLIENT_ID = ""
+        tab_api_mcp.CLIENT_SECRET = ""
+
+        # Temporarily clear environment variables for this test
+        with patch.dict('os.environ', {}, clear=True):
             # Call the function
-            tab_api_mcp.prompt_for_jurisdiction()
-            
-            # Check that the jurisdiction was set correctly
-            self.assertEqual(tab_api_mcp.DEFAULT_JURISDICTION, 'VIC')
+            tab_api_mcp.prompt_for_credentials()
+
+        # Check that the credentials were set correctly from input
+        self.assertEqual(tab_api_mcp.CLIENT_ID, 'test_input_client_id')
+        self.assertEqual(tab_api_mcp.CLIENT_SECRET, 'test_input_client_secret')
+        mock_input.assert_called_once_with("Enter your TAB API Client ID: ")
+        mock_getpass.assert_called_once_with("Enter your TAB API Client Secret: ")
+
+    @patch('builtins.input', return_value='test_input_client_id')
+    @patch('getpass.getpass', return_value='test_input_client_secret')
+    def test_prompt_for_credentials_with_env(self, mock_getpass, mock_input): # This is synchronous
+        """Test the prompt_for_credentials function when env vars ARE set."""
+        # Set environment variables for this test
+        with patch.dict('os.environ', {'TAB_CLIENT_ID': 'env_id', 'TAB_CLIENT_SECRET': 'env_secret'}, clear=True):
+            # Call the function
+            tab_api_mcp.prompt_for_credentials()
+
+        # Check that the credentials were set correctly from environment
+        self.assertEqual(tab_api_mcp.CLIENT_ID, 'env_id')
+        self.assertEqual(tab_api_mcp.CLIENT_SECRET, 'env_secret')
+        # Ensure input/getpass were NOT called
+        mock_input.assert_not_called()
+        mock_getpass.assert_not_called()
+
+    @patch('builtins.input', return_value='2') # Mock input to select VIC
+    def test_prompt_for_jurisdiction(self, mock_input): # This is synchronous
+        """Test the prompt_for_jurisdiction function."""
+        # Call the function
+        tab_api_mcp.prompt_for_jurisdiction()
+
+        # Check that the jurisdiction was set correctly
+        self.assertEqual(tab_api_mcp.DEFAULT_JURISDICTION, 'VIC')
+        # Check input was called correctly (might need more specific assertion depending on exact prompt)
+        mock_input.assert_called()
 
 if __name__ == '__main__':
     unittest.main()

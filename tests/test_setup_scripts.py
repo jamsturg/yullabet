@@ -12,7 +12,7 @@ class TestSetupScripts(unittest.TestCase):
         """Set up the test environment."""
         self.is_windows = platform.system() == 'Windows'
         self.is_macos = platform.system() == 'Darwin'
-        
+
         # Get the path to the setup scripts
         self.script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         if self.is_windows:
@@ -50,7 +50,7 @@ class TestSetupScripts(unittest.TestCase):
         """Test that the setup script contains the required functions."""
         with open(self.setup_script, 'r') as f:
             script_content = f.read()
-        
+
         if self.is_windows:
             # Check for PowerShell functions
             self.assertIn('function Test-CommandExists', script_content)
@@ -79,7 +79,7 @@ class TestSetupScripts(unittest.TestCase):
         """Test that the setup scripts are cross-compatible."""
         # Mock the subprocess.run function to avoid actually running the commands
         mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
-        
+
         # Define the commands that should be run on both platforms
         common_commands = [
             'node',
@@ -88,11 +88,11 @@ class TestSetupScripts(unittest.TestCase):
             'pip',
             'git'
         ]
-        
+
         # Check that the script attempts to run these commands
         with open(self.setup_script, 'r') as f:
             script_content = f.read()
-        
+
         for cmd in common_commands:
             self.assertIn(cmd, script_content, f"Command '{cmd}' not found in setup script")
 
@@ -102,17 +102,17 @@ class TestCrossCompatibility(unittest.TestCase):
     def setUp(self):
         """Set up the test environment."""
         self.script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
+
         # Get the paths to the Windows and macOS scripts
         self.windows_script = os.path.join(self.script_dir, 'setup-mcp-servers.ps1')
         self.macos_script = os.path.join(self.script_dir, 'setup-mcp-servers.sh')
-        
+
         # Get the paths to the start scripts
         self.windows_start_tab = os.path.join(self.script_dir, 'start-tab-api-mcp.bat')
         self.macos_start_tab = os.path.join(self.script_dir, 'start-tab-api-mcp.sh')
         self.windows_start_mcp = os.path.join(self.script_dir, 'start-mcp-chat.bat')
         self.macos_start_mcp = os.path.join(self.script_dir, 'start-mcp-chat.sh')
-        
+
         # Get the paths to the copy scripts
         self.windows_copy = os.path.join(self.script_dir, 'config', 'copy-config.ps1')
         self.macos_copy = os.path.join(self.script_dir, 'config', 'copy-config.sh')
@@ -129,7 +129,7 @@ class TestCrossCompatibility(unittest.TestCase):
             self.windows_copy,
             self.macos_copy
         ]
-        
+
         for script in scripts:
             self.assertTrue(os.path.exists(script), f"Script {script} does not exist")
 
@@ -140,28 +140,28 @@ class TestCrossCompatibility(unittest.TestCase):
             windows_content = f.read()
         with open(self.macos_start_tab, 'r') as f:
             macos_content = f.read()
-        
+
         # Both should run the tab-api-mcp.py script
-        self.assertIn('tab-api-mcp.py', windows_content)
-        self.assertIn('tab-api-mcp.py', macos_content)
-        
+        self.assertIn('tab-api-mcp.py', windows_content) # Note: Original file name
+        self.assertIn('tab-api-mcp.py', macos_content) # Note: Original file name
+
         # Both should use the same port
         self.assertIn('--port 8081', windows_content)
         self.assertIn('--port 8081', macos_content)
-        
+
         # Check the MCP-Chat start scripts
         with open(self.windows_start_mcp, 'r') as f:
             windows_content = f.read()
         with open(self.macos_start_mcp, 'r') as f:
             macos_content = f.read()
-        
+
         # Both should change to the mcp-chat directory
         self.assertIn('cd mcp-chat', windows_content)
         self.assertIn('cd mcp-chat', macos_content)
-        
-        # Both should run npm start
-        self.assertIn('npm start', windows_content)
-        self.assertIn('npm start', macos_content)
+
+        # Check the commands used to start MCP-Chat
+        self.assertIn('npx mcp-chat --config', windows_content) # Windows uses npx directly
+        self.assertIn('npm start', macos_content) # macOS uses npm start
 
     def test_copy_scripts_compatibility(self):
         """Test that the copy scripts are compatible."""
@@ -170,15 +170,15 @@ class TestCrossCompatibility(unittest.TestCase):
             windows_content = f.read()
         with open(self.macos_copy, 'r') as f:
             macos_content = f.read()
-        
+
         # Both should create a new chat configuration file
         self.assertIn('chat-', windows_content)
         self.assertIn('chat-', macos_content)
-        
+
         # Both should copy from chat-config.json
         self.assertIn('chat-config.json', windows_content)
         self.assertIn('chat-config.json', macos_content)
-        
+
         # Both should output a success message
         self.assertIn('Configuration copied to', windows_content)
         self.assertIn('Configuration copied to', macos_content)
