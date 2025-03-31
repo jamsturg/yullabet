@@ -2,6 +2,24 @@
 
 This repository contains configuration for setting up MCP servers for AI agent interaction.
 
+## Requirements
+
+### MCP-Chat Requirements
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- The following npm packages:
+  - @modelcontextprotocol/server-filesystem
+  - mcp
+  - express
+  - socket.io
+
+### Freqtrade-MCP Requirements
+- Python 3.10+
+- The following Python packages:
+  - freqtrade-client
+  - mcp[cli]
+- A running Freqtrade instance with the REST API enabled
+
 ## Setup
 
 This repository includes:
@@ -9,6 +27,22 @@ This repository includes:
 1. **MCP-Chat Configuration**: A configuration file for the MCP-Chat server that includes both the filesystem MCP server and the freqtrade-mcp server.
 
 2. **Configuration Script**: A PowerShell script to copy the configuration to the MCP-Chat directory.
+
+### Installation
+
+1. **Install MCP-Chat Dependencies**:
+   ```bash
+   cd mcp-chat
+   npm install
+   ```
+
+2. **Install Freqtrade-MCP Dependencies**:
+   ```bash
+   cd freqtrade-mcp
+   pip install -r requirements.txt
+   # Or using uv
+   uv add freqtrade-client "mcp[cli]"
+   ```
 
 ## Usage
 
@@ -30,6 +64,12 @@ Start the MCP-Chat server:
 ```bash
 cd path/to/mcp-chat
 npm start
+```
+
+Or use the provided batch file:
+
+```bash
+.\start-mcp-chat.bat
 ```
 
 ### 3. Select the Configuration

@@ -1,0 +1,14 @@
+# MCP-Chat Requirements
+# Install with: npm install
+
+# Core dependencies
+@modelcontextprotocol/server-filesystem  # For filesystem access
+mcp                                      # Model Context Protocol core
+express                                  # Web server framework
+socket.io                                # Real-time communication
+
+# Freqtrade-MCP Requirements
+# Install with: pip install -r requirements.txt or uv add
+
+freqtrade-client                         # Freqtrade API client
+mcp[cli]                                 # MCP CLI tools
