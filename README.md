@@ -250,11 +250,36 @@ The freqtrade-mcp server provides the following tools:
 
 The TAB API MCP server provides the following tools:
 
+#### Sports and Racing Information
+
 - `get_sports`: Get a list of available sports
 - `get_sport_competitions`: Get competitions for a specific sport
+- `get_sport_events`: Get events for a specific sport and optionally a specific competition
 - `get_racing_dates`: Get available racing dates
 - `get_racing_meetings`: Get racing meetings for a specific date
 - `get_racing_races`: Get races for a specific meeting
+- `get_event_details`: Get detailed information about a specific event
+- `get_race_details`: Get detailed information about a specific race
+- `get_runner_details`: Get detailed information about a specific runner in a race
+
+#### Account Management
+
+- `get_account_details`: Get details about the user's TAB account
+- `get_account_balance`: Get the current balance of the user's TAB account
+- `get_transaction_history`: Get transaction history for the user's TAB account
+
+#### Betting
+
+- `place_bet`: Place a bet on the TAB platform
+- `get_bet_history`: Get betting history for the user's TAB account
+- `get_active_bets`: Get all active (unsettled) bets for the user's TAB account
+- `cancel_bet`: Cancel a pending bet
+
+#### Markets and Odds
+
+- `get_markets`: Get available markets for a specific event
+- `get_odds`: Get odds for a specific market
+- `get_live_odds`: Get live odds updates for a specific event
 
 ## Testing
 
