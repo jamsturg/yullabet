@@ -3,11 +3,122 @@
   "settings": {
     "model": "claude-3-7-sonnet-20250219",
     "systemPrompt": "You are a generic AI agent assistant. \nYou are given tools via MCP servers to assist with tasks. \nUse the tools as needed to complete the user's tasks. \nIf you need help, ask the user for more information. \nIf you are asked to retrieve logs, please only tail the last 100 lines of the logs.\n",
-    "servers": [
-      "npx -y @modelcontextprotocol/server-filesystem C://",
-      "uv --directory C:/Users/adam/Desktop/freqtrade-mcp run __main__.py",
-      "python C:/Users/adam/Desktop/yullabet/tab-api-mcp.py --port 8081"
-    ]
+    "mcpServers": {
+      "@smithery-ai-server-sequential-thinking": {
+        "command": "smithery",
+        "args": [
+          "run",
+          "@smithery-ai/server-sequential-thinking",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "freqtrade-mcp": {
+        "command": "uv",
+        "args": [
+          "--directory",
+          "C:\\Users\\adam\\freqtrade-mcp",
+          "run",
+          "__main__.py"
+        ],
+        "env": {
+          "FREQTRADE_API_URL": "http://127.0.0.1:8080",
+          "FREQTRADE_USERNAME": "Freqtrader",
+          "FREQTRADE_PASSWORD": "SuperSecurePassword123!"
+        }
+      },
+      "@browserbasehq-mcp-browserbase": {
+        "command": "smithery",
+        "args": [
+          "run",
+          "@browserbasehq/mcp-browserbase",
+          "--config",
+          "\"{\\\"browserbaseApiKey\\\":\\\"bb_live_XnuyF9fujKgA0D5a2SqfW07uX98\\\",\\\"browserbaseProjectId\\\":\\\"c312297c-e4db-45b1-8dea-f764e96406ae\\\"}\""
+        ]
+      },
+      "mcp-manus": {
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@ashley-ha/mcp-manus"
+        ]
+      },
+      "mcp-duckdb-memory-server": {
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@IzumiSy/mcp-duckdb-memory-server",
+          "--key",
+          "822a1ab9-ffcd-43d5-b947-18652aaa10e1npx"
+        ]
+      },
+      "@capecoma-winterm-mcp": {
+        "command": "smithery",
+        "args": [
+          "run",
+          "@capecoma/winterm-mcp",
+          "--config",
+          "\"{}\""
+        ]
+      },
+      "mcp-server-aidd": {
+        "runtime": "python",
+        "command": "uvx",
+        "args": [
+          "mcp-server-aidd"
+        ]
+      },
+      "mcp-server-ccxt": {
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "mcp-server-ccxt",
+          "--config",
+          "\"{\\\"pythonPath\\\":\\\"C:\\\\\\\\Users\\\\\\\\adam\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Programs\\\\\\\\Python\\\\\\\\Python311\\\\\\\\\\\",\\\"serverScript\\\":\\\"npx -y @smithery/cli install @sidharthrajaram/mcp-sse --client claudenpx -y @smithery/cli install @sidharthrajaram/mcp-sse --client claudenpx -y @smithery/cli install @sidharthrajaram/mcp-sse --client claude\\\"}\""
+        ]
+      },
+      "server-win-cli": {
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@smithery/cli@latest",
+          "run",
+          "@simonb97/server-win-cli",
+          "--key",
+          "822a1ab9-ffcd-43d5-b947-18652aaa10e1"
+        ]
+      },
+      "filesystem-server": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "C://"
+        ]
+      },
+      "tab-api-server": {
+        "command": "python",
+        "args": [
+          "C:/Users/adam/Desktop/yullabet/tab-api-mcp.py",
+          "--port",
+          "8081"
+        ]
+      }
+    }
   },
   "messages": []
 }
