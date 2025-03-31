@@ -150,23 +150,41 @@ def prompt_for_jurisdiction():
 
 def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlette:
     """Create a Starlette application that can serve the provided mcp server with SSE."""
+    from starlette.responses import JSONResponse
     sse = SseServerTransport("/messages/")
 
     async def handle_sse(request: Request) -> None:
-        async with sse.connect_sse(
-                request.scope,
-                request.receive,
-                request._send,  # noqa: SLF001
-        ) as (read_stream, write_stream):
-            await mcp_server.run(
-                read_stream,
-                write_stream,
-                mcp_server.create_initialization_options(),
-            )
+        try:
+            async with sse.connect_sse(
+                    request.scope,
+                    request.receive,
+                    request._send,  # noqa: SLF001
+            ) as (read_stream, write_stream):
+                await mcp_server.run(
+                    read_stream,
+                    write_stream,
+                    mcp_server.create_initialization_options(),
+                )
+        except Exception as e:
+            print(f"Error in SSE connection: {str(e)}")
+            raise
+
+    async def handle_root(request: Request) -> JSONResponse:
+        """Handle the root route."""
+        return JSONResponse({
+            "name": "TAB API MCP Server",
+            "version": "0.1.0",
+            "status": "running",
+            "endpoints": {
+                "sse": "/sse",
+                "messages": "/messages/"
+            }
+        })
 
     return Starlette(
         debug=debug,
         routes=[
+            Route("/", endpoint=handle_root),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
         ],
