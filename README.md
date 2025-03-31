@@ -36,11 +36,32 @@ This repository includes:
 
 1. **MCP-Chat Configuration**: A configuration file for the MCP-Chat server that includes the filesystem MCP server, the freqtrade-mcp server, and the TAB API MCP server.
 
-2. **Configuration Script**: A PowerShell script to copy the configuration to the MCP-Chat directory.
+2. **Configuration Script**: Scripts to copy the configuration to the MCP-Chat directory.
 
 3. **TAB API MCP Server**: A Python-based MCP server that provides tools for interacting with the TAB API.
 
-### Installation
+4. **Setup Scripts**: Scripts for setting up the environment on Windows and macOS.
+
+### Automated Setup (macOS)
+
+For macOS users, a comprehensive setup script is provided:
+
+```bash
+# Make the script executable
+chmod +x setup-mac.sh
+
+# Run the setup script
+./setup-mac.sh
+```
+
+This script will:
+1. Make all shell scripts executable
+2. Check and verify Node.js and npm installation
+3. Check and install Python dependencies
+4. Set up MCP-Chat
+5. Copy the configuration to the .mcpchat/chats directory
+
+### Manual Installation
 
 1. **Install MCP-Chat Dependencies**:
    ```bash
@@ -67,11 +88,18 @@ This repository includes:
 
 ### 1. Copy the Configuration
 
-Run the PowerShell script to copy the configuration to the MCP-Chat directory:
-
+#### Windows:
 ```powershell
 cd config
 .\copy-config.ps1
+```
+
+#### macOS/Linux:
+```bash
+cd config
+# Make the script executable if needed
+chmod +x copy-config.sh
+./copy-config.sh
 ```
 
 This will create a new chat configuration in the `.mcpchat/chats` directory with all MCP servers included.
@@ -80,8 +108,16 @@ This will create a new chat configuration in the `.mcpchat/chats` directory with
 
 Start the TAB API MCP server:
 
+#### Windows:
 ```bash
 .\start-tab-api-mcp.bat
+```
+
+#### macOS/Linux:
+```bash
+# Make the script executable if needed
+chmod +x start-tab-api-mcp.sh
+./start-tab-api-mcp.sh
 ```
 
 When the TAB API MCP server starts, it will prompt you for:
@@ -91,10 +127,16 @@ When the TAB API MCP server starts, it will prompt you for:
 
 ### 3. Start MCP-Chat
 
-Start the MCP-Chat server:
-
+#### Windows:
 ```bash
 .\start-mcp-chat.bat
+```
+
+#### macOS/Linux:
+```bash
+# Make the script executable if needed
+chmod +x start-mcp-chat.sh
+./start-mcp-chat.sh
 ```
 
 ### 4. Select the Configuration
