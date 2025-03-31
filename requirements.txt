@@ -12,3 +12,12 @@ socket.io                                # Real-time communication
 
 freqtrade-client                         # Freqtrade API client
 mcp[cli]                                 # MCP CLI tools
+
+# TAB API MCP Requirements
+# Install with: pip install -r requirements.txt or uv add
+
+httpx                                    # HTTP client
+mcp[server]                              # MCP server tools
+starlette                                # ASGI framework
+uvicorn                                  # ASGI server
+python-dotenv                            # Environment variable management

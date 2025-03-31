@@ -20,13 +20,25 @@ This repository contains configuration for setting up MCP servers for AI agent i
   - mcp[cli]
 - A running Freqtrade instance with the REST API enabled
 
+### TAB API MCP Requirements
+- Python 3.10+
+- The following Python packages:
+  - httpx
+  - mcp[server]
+  - starlette
+  - uvicorn
+  - python-dotenv
+- TAB API credentials (client_id and client_secret)
+
 ## Setup
 
 This repository includes:
 
-1. **MCP-Chat Configuration**: A configuration file for the MCP-Chat server that includes both the filesystem MCP server and the freqtrade-mcp server.
+1. **MCP-Chat Configuration**: A configuration file for the MCP-Chat server that includes the filesystem MCP server, the freqtrade-mcp server, and the TAB API MCP server.
 
 2. **Configuration Script**: A PowerShell script to copy the configuration to the MCP-Chat directory.
+
+3. **TAB API MCP Server**: A Python-based MCP server that provides tools for interacting with the TAB API.
 
 ### Installation
 
@@ -44,6 +56,20 @@ This repository includes:
    uv add freqtrade-client "mcp[cli]"
    ```
 
+3. **Install TAB API MCP Dependencies**:
+   ```bash
+   pip install httpx mcp[server] starlette uvicorn python-dotenv
+   # Or using uv
+   uv add httpx "mcp[server]" starlette uvicorn python-dotenv
+   ```
+
+4. **Configure TAB API Credentials**:
+   Edit the `.env` file and add your TAB API credentials:
+   ```
+   TAB_CLIENT_ID=your_client_id
+   TAB_CLIENT_SECRET=your_client_secret
+   ```
+
 ## Usage
 
 ### 1. Copy the Configuration
@@ -55,24 +81,25 @@ cd config
 .\copy-config.ps1
 ```
 
-This will create a new chat configuration in the `.mcpchat/chats` directory with the freqtrade-mcp server included.
+This will create a new chat configuration in the `.mcpchat/chats` directory with all MCP servers included.
 
-### 2. Start MCP-Chat
+### 2. Start the MCP Servers
 
-Start the MCP-Chat server:
+Start the TAB API MCP server:
 
 ```bash
-cd path/to/mcp-chat
-npm start
+.\start-tab-api-mcp.bat
 ```
 
-Or use the provided batch file:
+### 3. Start MCP-Chat
+
+Start the MCP-Chat server:
 
 ```bash
 .\start-mcp-chat.bat
 ```
 
-### 3. Select the Configuration
+### 4. Select the Configuration
 
 Open the MCP-Chat web interface (usually at http://localhost:3000) and select the newly created chat configuration.
 
@@ -101,6 +128,19 @@ Environment variables:
 - FREQTRADE_USERNAME: The username for the Freqtrade API
 - FREQTRADE_PASSWORD: The password for the Freqtrade API
 
+### 3. TAB API MCP Server
+
+Provides integration with the TAB API for sports and racing information.
+
+Command:
+```
+python C:/Users/adam/Desktop/yullabet/tab-api-mcp.py --port 8081
+```
+
+Environment variables:
+- TAB_CLIENT_ID: The client ID for the TAB API
+- TAB_CLIENT_SECRET: The client secret for the TAB API
+
 ## Available Tools
 
 ### Freqtrade MCP Tools
@@ -124,3 +164,13 @@ The freqtrade-mcp server provides the following tools:
 - `add_blacklist`: Add pair to blacklist
 - `delete_blacklist`: Remove pair from blacklist
 - `delete_lock`: Delete a trade lock
+
+### TAB API MCP Tools
+
+The TAB API MCP server provides the following tools:
+
+- `get_sports`: Get a list of available sports
+- `get_sport_competitions`: Get competitions for a specific sport
+- `get_racing_dates`: Get available racing dates
+- `get_racing_meetings`: Get racing meetings for a specific date
+- `get_racing_races`: Get races for a specific meeting
